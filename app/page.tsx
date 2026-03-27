@@ -115,3 +115,72 @@ export default function Home() {
     </main>
   );
 }
+"use client"
+
+import React from 'react';
+// சார்ட் வரைய தேவையானவற்றை இம்போர்ட் செய்கிறோம்
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
+} from 'recharts';
+
+// 1. சாம்பிள் டேட்டா - இது உங்கள் ஆப்பில் உள்ள செலவு விபரங்களைக் குறிக்கும்
+const data = [
+  { month: 'Jan', expense: 8000, savings: 4000 },
+  { month: 'Feb', expense: 12000, savings: 2000 },
+  { month: 'Mar', expense: 9000, savings: 5000 },
+  { month: 'Apr', expense: 11000, savings: 3500 },
+];
+
+export default function Home() {
+  return (
+    <main className="min-h-screen bg-[#F8F9FE] p-4 md:p-8 font-sans">
+      <div className="max-w-6xl mx-auto">
+        
+        {/* ஏற்கனவே உள்ள உங்கள் Header & Stats கார்டுகள் இங்கே இருக்கும் */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+           {/* Your Spending Cards... */}
+        </div>
+
+        {/* 2. இதுதான் நாம் புதிதாகச் சேர்க்கும் STACKED BAR CHART */}
+        <div className="bg-white p-6 rounded-[30px] shadow-sm border border-gray-100 mb-8">
+          <h2 className="text-xl font-bold text-gray-800 mb-6">Savings vs Expense Split</h2>
+          
+          {/* Chart Container - உயரம் 350px ஆக வைத்துள்ளேன் */}
+          <div className="w-full h-[350px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#9ca3af'}} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#9ca3af'}} />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '15px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                />
+                <Legend verticalAlign="top" align="right" height={40} />
+
+                {/* 'stackId' ஒன்றாக இருந்தால் மட்டுமே ஒன்றன் மேல் ஒன்றாக அடுக்கி வைக்கப்படும் */}
+                <Bar 
+                  dataKey="expense" 
+                  name="செலவு" 
+                  stackId="wallet" 
+                  fill="#7C3AED" // உங்கள் ஆப் தீம் கலர் (Purple)
+                  barSize={35}
+                />
+                <Bar 
+                  dataKey="savings" 
+                  name="சேமிப்பு" 
+                  stackId="wallet" 
+                  fill="#10B981" // பச்சை நிறம் (Savings)
+                  radius={[10, 10, 0, 0]} // மேல் பக்கம் மட்டும் வளைவாக
+                  barSize={35}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* ஏற்கனவே உள்ள உங்கள் Transaction List கீழே தொடரும் */}
+      </div>
+    </main>
+  );
+}
+
