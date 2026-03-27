@@ -37,8 +37,8 @@ export default function Home() {
     const newEntry = { id: Date.now(), person, reason, amount: val, type, date: 'Today' };
     setTransactions([newEntry, ...transactions]);
     const newData = [...data];
-    if (type === 'expense') newData[0].expense += val;
-    else newData[0].savings += val;
+    if (type === 'expense') newData.expense += val;
+    else newData.savings += val;
     setData(newData);
     setAmount('');
   };
@@ -46,8 +46,8 @@ export default function Home() {
   const handleDelete = (id: number, amt: number, entryType: string) => {
     setTransactions(transactions.filter(t => t.id !== id));
     const newData = [...data];
-    if (entryType === 'expense') newData[0].expense -= amt;
-    else newData[0].savings -= amt;
+    if (entryType === 'expense') newData.expense -= amt;
+    else newData.savings -= amt;
     setData(newData);
   };
 
