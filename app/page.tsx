@@ -1,130 +1,122 @@
 "use client"
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { Wallet, PlusCircle, History, Utensils, Home as HomeIcon, Car, ShoppingBag, User, Trash2 } from 'lucide-react'
+import { Wallet, PlusCircle, History, Utensils, Home as HomeIcon, Car, ShoppingBag, User, Trash2, LogIn, Mail, Lock } from 'lucide-react'
 
 export default function Home() {
+  const [user, setUser] = useState(null)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState('Food')
   const [member, setMember] = useState('Appa')
   const [transactions, setTransactions] = useState([])
   const [total, setTotal] = useState(0)
-  const [memberTotals, setMemberTotals] = useState({})
   const [loading, setLoading] = useState(false)
 
-  const fetchTransactions = async () => {
-    const { data, error } = await supabase.from('transactions').select('*').order('created_at', { ascending: false })
-    if (data) {
-      setTransactions(data)
-      const newTotal = data.reduce((acc, curr) => acc + Number(curr.amount), 0)
-      setTotal(newTotal)
-
-      const totals = data.reduce((acc, curr) => {
-        acc[curr.member] = (acc[curr.member] || 0) + Number(curr.amount)
-        return acc
-      }, {})
-      setMemberTotals(totals)
-    }
-  }
-
   useEffect(() => {
-    fetchTransactions()
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+    return () => subscription.unsubscribe()
   }, [])
 
-  const addTransaction = async (e) => {
+  useEffect(() => {
+    if (user) fetchTransactions()
+  }, [user])
+
+  const handleLogin = async (e) => {
     e.preventDefault()
-    if (!amount) return
     setLoading(true)
-
-    const { error } = await supabase.from('transactions').insert([
-      { amount: Number(amount), category, member, created_at: new Date().toISOString() }
-    ])
-
-    if (!error) {
-      setAmount('')
-      fetchTransactions()
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) {
+      const { error: signUpError } = await supabase.auth.signUp({ email, password })
+      if (signUpError) alert(signUpError.message)
+      else alert('Account created! Logging in...')
     }
     setLoading(false)
   }
 
-  const deleteTransaction = async (id) => {
-    const { error } = await supabase.from('transactions').delete().eq('id', id)
-    if (!error) fetchTransactions()
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    setUser(null)
+  }
+
+  const fetchTransactions = async () => {
+    const { data } = await supabase.from('transactions').select('*').order('created_at', { ascending: false })
+    if (data) {
+      setTransactions(data)
+      setTotal(data.reduce((acc, curr) => acc + Number(curr.amount), 0))
+    }
+  }
+
+  const addTransaction = async (e) => {
+    e.preventDefault()
+    if (!amount) return
+    const { error } = await supabase.from('transactions').insert([{ amount: Number(amount), category, member }])
+    if (!error) { setAmount(''); fetchTransactions() }
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-blue-50 flex flex-col justify-center p-6">
+        <div className="bg-white p-8 rounded-3xl shadow-xl space-y-6">
+          <div className="text-center">
+            <Wallet className="w-12 h-12 text-blue-600 mx-auto" />
+            <h1 className="text-2xl font-bold mt-2">Family Wallet</h1>
+            <p className="text-gray-500 text-sm">Please login to continue</p>
+          </div>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="relative">
+              <Mail className="w-5 h-5 text-gray-400 absolute left-3 top-3" />
+              <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full pl-10 p-3 bg-gray-50 rounded-xl outline-none border focus:border-blue-500" required />
+            </div>
+            <div className="relative">
+              <Lock className="w-5 h-5 text-gray-400 absolute left-3 top-3" />
+              <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full pl-10 p-3 bg-gray-50 rounded-xl outline-none border focus:border-blue-500" required />
+            </div>
+            <button disabled={loading} className="w-full bg-blue-600 text-white p-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg">
+              {loading ? 'Please wait...' : 'Login / Sign Up'}
+            </button>
+          </form>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="bg-blue-600 text-white p-6 rounded-b-3xl shadow-lg">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Wallet className="w-8 h-8" />
-          Family Wallet
-        </h1>
-        <div className="mt-4">
-          <p className="text-blue-100 text-sm">Total Expenses</p>
+      <div className="bg-blue-600 text-white p-6 rounded-b-3xl shadow-lg flex justify-between items-start">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2"><Wallet className="w-8 h-8" /> Family Wallet</h1>
+          <p className="mt-4 text-blue-100 text-sm">Total Expenses</p>
           <p className="text-4xl font-bold">₹{total.toLocaleString()}</p>
         </div>
+        <button onClick={handleLogout} className="p-2 bg-blue-500 rounded-lg text-xs font-bold uppercase tracking-wider">Logout</button>
       </div>
 
       <div className="p-4 -mt-6">
         <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
           <form onSubmit={addTransaction} className="space-y-4">
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <label className="block text-xs font-semibold text-gray-500 mb-1">AMOUNT</label>
-                <input
-                  type="number"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="0.00"
-                  className="w-full text-2xl font-bold p-2 border-b-2 border-gray-100 focus:border-blue-500 outline-none transition-colors"
-                />
-              </div>
-            </div>
-
+            <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="₹ 0.00" className="w-full text-3xl font-bold p-2 border-b-2 border-gray-100 focus:border-blue-500 outline-none" />
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1">CATEGORY</label>
-                <select 
-                  value={category} 
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full p-3 bg-gray-50 rounded-xl border-none outline-none text-sm font-medium"
-                >
-                  <option>Food</option>
-                  <option>Rent</option>
-                  <option>Travel</option>
-                  <option>Shopping</option>
-                  <option>Others</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1">MEMBER</label>
-                <select 
-                  value={member} 
-                  onChange={(e) => setMember(e.target.value)}
-                  className="w-full p-3 bg-gray-50 rounded-xl border-none outline-none text-sm font-medium"
-                >
-                  <option>Appa</option>
-                  <option>Amma</option>
-                  <option>Me</option>
-                </select>
-              </div>
+              <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full p-3 bg-gray-50 rounded-xl outline-none text-sm font-medium">
+                <option>Food</option><option>Rent</option><option>Travel</option><option>Shopping</option><option>Others</option>
+              </select>
+              <select value={member} onChange={(e) => setMember(e.target.value)} className="w-full p-3 bg-gray-50 rounded-xl outline-none text-sm font-medium">
+                <option>Appa</option><option>Amma</option><option>Me</option>
+              </select>
             </div>
-
-            <button
-              disabled={loading}
-              className="w-full bg-blue-600 text-white p-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors shadow-lg active:scale-95"
-            >
-              <PlusCircle className="w-5 h-5" />
-              {loading ? 'Adding...' : 'Add Expense'}
-            </button>
+            <button className="w-full bg-blue-600 text-white p-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95"><PlusCircle className="w-5 h-5" /> Add Expense</button>
           </form>
         </div>
       </div>
 
       <div className="px-4 mt-6">
-        <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <History className="w-5 h-5" /> Recent Expenses
-        </h2>
+        <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2"><History className="w-5 h-5" /> Recent Expenses</h2>
         <div className="space-y-3">
           {transactions.map((t) => (
             <div key={t.id} className="bg-white p-4 rounded-2xl flex items-center justify-between shadow-sm border border-gray-50">
@@ -136,17 +128,9 @@ export default function Home() {
                   {t.category === 'Shopping' && <ShoppingBag className="w-5 h-5" />}
                   {t.category === 'Others' && <Wallet className="w-5 h-5" />}
                 </div>
-                <div>
-                  <p className="font-bold text-gray-800">{t.member}</p>
-                  <p className="text-xs text-gray-500 font-medium uppercase">{t.category}</p>
-                </div>
+                <div><p className="font-bold text-gray-800">{t.member}</p><p className="text-xs text-gray-500 uppercase">{t.category}</p></div>
               </div>
-              <div className="flex items-center gap-4">
-                <p className="text-lg font-bold text-red-500">-₹{t.amount}</p>
-                <button onClick={() => deleteTransaction(t.id)} className="text-gray-300 hover:text-red-500 transition-colors">
-                  <Trash2 className="w-5 h-5" />
-                </button>
-              </div>
+              <p className="text-lg font-bold text-red-500">-₹{t.amount}</p>
             </div>
           ))}
         </div>
