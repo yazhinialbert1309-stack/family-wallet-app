@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Trash2, PlusCircle, Wallet, History, LogOut, User, Lock, UserPlus } from 'lucide-react';
+import { Trash2, Wallet, LogOut, History } from 'lucide-react';
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -24,10 +24,10 @@ export default function Home() {
     if (isSignUp) {
       localStorage.setItem(`user_${username}`, password);
       setIsSignUp(false); setAuthError(''); setPassword('');
-      alert('கணக்கு உருவாக்கப்பட்டது! இப்போது Login செய்யவும்.');
+      alert('கணக்கு உருவாக்கப்பட்டது!');
     } else {
       const savedPass = localStorage.getItem(`user_${username}`);
-      if (savedPass && savedPass === password) {
+      if (savedPass === password) {
         setIsLoggedIn(true);
         setAuthError('');
       } else {
@@ -63,12 +63,12 @@ export default function Home() {
         <form onSubmit={handleAuth} className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md border border-gray-100 text-black">
           <div className="flex flex-col items-center mb-6">
             <div className="p-3 bg-purple-600 rounded-2xl text-white mb-2"><Wallet size={32} /></div>
-            <h1 className="text-2xl font-bold">{isSignUp ? 'கணக்கை உருவாக்கு' : 'உள்நுழைக'}</h1>
+            <h1 className="text-2xl font-bold">{isSignUp ? 'Sign Up' : 'Login'}</h1>
           </div>
           <input type="text" placeholder="பெயர்" className="w-full p-3 mb-4 bg-gray-50 rounded-xl outline-none border" value={username} onChange={(e) => setUsername(e.target.value)} required />
           <input type="password" placeholder="கடவுச்சொல்" className="w-full p-3 mb-4 bg-gray-50 rounded-xl outline-none border" value={password} onChange={(e) => setPassword(e.target.value)} required />
           {authError && <p className="text-red-500 text-sm mb-4 text-center">{authError}</p>}
-          <button className="w-full p-3 bg-purple-600 text-white font-bold rounded-xl shadow-lg hover:bg-purple-700 transition-all">{isSignUp ? 'கணக்கை உருவாக்கு' : 'Login'}</button>
+          <button className="w-full p-3 bg-purple-600 text-white font-bold rounded-xl">{isSignUp ? 'Create Account' : 'Login'}</button>
           <p onClick={() => {setIsSignUp(!isSignUp); setAuthError('');}} className="mt-4 text-center text-sm text-purple-600 cursor-pointer font-medium">
             {isSignUp ? 'ஏற்கனவே கணக்கு உள்ளதா? Login' : 'புதிய கணக்கு வேண்டுமா? Sign Up'}
           </p>
@@ -92,12 +92,11 @@ export default function Home() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
           <div className="bg-white p-6 rounded-[30px] shadow-sm border border-gray-100 h-fit">
-            <h2 className="text-lg font-bold mb-4">New Entry</h2>
-            <select className="w-full p-3 bg-gray-50 rounded-xl mb-3 border-none outline-none" value={person} onChange={(e) => setPerson(e.target.value)}>
+            <select className="w-full p-3 bg-gray-50 rounded-xl mb-3 outline-none" value={person} onChange={(e) => setPerson(e.target.value)}>
               <option>Appa 👴</option><option>Amma 👩</option><option>Me 👦</option>
             </select>
-            <select className="w-full p-3 bg-gray-50 rounded-xl mb-3 border-none outline-none" value={reason} onChange={(e) => setReason(e.target.value)}>
-              <option>Food 🍔</option><option>Rent 🏠</option><option>Travel 🚗</option><option>Shopping 🛍️</option>
+            <select className="w-full p-3 bg-gray-50 rounded-xl mb-3 outline-none" value={reason} onChange={(e) => setReason(e.target.value)}>
+              <option>Food 🍔</option><option>Rent 🏠</option><option>Shopping 🛍️</option>
             </select>
             <input type="number" placeholder="தொகை (₹)" className="w-full p-3 bg-gray-50 rounded-xl mb-4 outline-none font-bold" value={amount} onChange={(e) => setAmount(e.target.value)} />
             <div className="flex gap-2 mb-4">
@@ -115,7 +114,7 @@ export default function Home() {
                 <YAxis axisLine={false} tickLine={false} width={40} />
                 <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{borderRadius: '15px', border: 'none'}} />
                 <Bar dataKey="expense" stackId="a" fill="#7C3AED" barSize={50} />
-                <Bar dataKey="savings" stackId="a" fill="#10B981" barSize={50} radius={[5, 5, 0, 0]} />
+                <Bar dataKey="savings" stackId="a" fill="#10B981" barSize={50} radius={[10, 10, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -123,7 +122,7 @@ export default function Home() {
 
         <div className="bg-white p-8 rounded-[35px] shadow-sm border border-gray-100 overflow-x-auto mb-10">
           <h2 className="text-xl font-bold mb-6 flex items-center gap-2"><History size={20} className="text-purple-600" /> History</h2>
-          <table className="w-full text-left">
+          <table className="w-full text-left text-black">
             <thead>
               <tr className="text-gray-400 border-b border-gray-50 uppercase text-xs font-bold tracking-widest">
                 <th className="pb-4">Member</th><th className="pb-4">Reason</th><th className="pb-4 text-right">Amount</th><th className="pb-4 text-center">Action</th>
@@ -131,7 +130,7 @@ export default function Home() {
             </thead>
             <tbody>
               {transactions.map((t) => (
-                <tr key={t.id} className="border-b border-gray-50 hover:bg-gray-50 transition-all">
+                <tr key={t.id} className="border-b border-gray-50 hover:bg-gray-50">
                   <td className="py-4 font-bold">{t.person}</td>
                   <td className="py-4 text-gray-600">{t.reason}</td>
                   <td className={`py-4 text-right font-bold ${t.type === 'expense' ? 'text-red-500' : 'text-green-500'}`}>₹{t.amount.toLocaleString()}</td>
@@ -142,7 +141,6 @@ export default function Home() {
               ))}
             </tbody>
           </table>
-          {transactions.length === 0 && <p className="text-center py-10 text-gray-400 italic">No entries yet.</p>}
         </div>
       </div>
     </main>
