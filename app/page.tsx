@@ -1,4 +1,5 @@
 "use client"
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { Wallet, PlusCircle, History, Utensils, Home as HomeIcon, Car, ShoppingBag, User, Trash2, LogIn, Mail, Lock, LogOut, Users, PiggyBank, ArrowDownCircle, ArrowUpCircle } from 'lucide-react'
