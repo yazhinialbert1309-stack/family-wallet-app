@@ -34,8 +34,8 @@ export default function Home() {
     const newEntry = { id: Date.now(), name: username, reason: 'Entry', amount: val, type, date: 'Today' };
     setTransactions([newEntry, ...transactions]);
     const newData = [...data];
-    if (type === 'expense') newData[0].expense += val;
-    else newData[0].savings += val;
+    if (type === 'expense') newData.expense += val;
+    else newData.savings += val;
     setData(newData);
     setAmount('');
   };
